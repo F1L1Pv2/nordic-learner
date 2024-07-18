@@ -189,6 +189,16 @@ function drawLineGradient(x1, y1, x2, y2, color1, color2, width){
     })
 }
 
+function drawCircle(x, y, radius, color){
+    drawables.push({
+        "type": "circle",
+        "x": x,
+        "y": y,
+        "radius": radius,
+        "color": color,
+    })
+}
+
 async function loadImage(url) {
     const image = new Image();
     image.src = url;
@@ -570,7 +580,6 @@ const ALL_LETTERS = [
     })
 
     window.onmousedown = ((ev) => {
-        console.log(ev)
         if(ev.which == 1){
             mouseButtons.left = true;
             mouseButtons.justClickedLeft = true;
@@ -587,7 +596,6 @@ const ALL_LETTERS = [
     })
 
     window.onmouseup = ((ev) => {
-        console.log(ev)
         if(ev.which == 1){
             mouseButtons.left = false;
             mouseButtons.justReleasedLeft = true;
@@ -643,6 +651,9 @@ const ALL_LETTERS = [
     goToMouse = null;
     mouseOver = null;
     dragging = null;
+
+    particles = []
+
     frame = ((timestamp) => {
         //////////////// computing delta time //////////////////////
         const deltaTime = (timestamp - prevTimestamp)/1000;
@@ -663,15 +674,33 @@ const ALL_LETTERS = [
         // drawImage(elderFuthark_A, 0, canvas.height - size/2, size/2, size/2);
         
         mouseOver = null;
-        cards.forEach((card) => {
+        cards.forEach((card) => {            
             if(mouseInsideRect(card)){
+                exists = false;
+                connections.forEach((it) => {
+                    if(exists) return;
+                    if(it.start == card){
+                        exists = true;
+                        return;
+                    }
+                    if(it.end == card){
+                        exists = true;
+                        return;
+                    }
+                })
+
+
                 if(mouseButtons.justClickedRight){
                     goToMouse = card;
                 }
                 if(mouseButtons.justClickedLeft){
-                    dragging = card;
+                    if(!exists){
+                        dragging = card;
+                    }
                 }
-                mouseOver = card;
+                if(!exists){
+                    mouseOver = card;
+                }
             }
 
             let image = getCard(card.color, mouseOver == card);
@@ -697,7 +726,22 @@ const ALL_LETTERS = [
 
         if(mouseButtons.justReleasedLeft){
             if(dragging != null && mouseOver != null && mouseOver != dragging && cardType(dragging.color) != cardType(mouseOver.color)){
-                connections.push({"start": dragging, "end": mouseOver})
+                exists = false;
+                connections.forEach((it) => {
+                    if(exists) return;
+                    if(it.start == mouseOver){
+                        exists = true;
+                        return;
+                    }
+                    if(it.end == mouseOver){
+                        exists = true;
+                        return;
+                    }
+                })
+                
+                if(!exists){
+                    connections.push({"start": dragging, "end": mouseOver, "timer": 0})
+                }
             }
             dragging = null;
         }
@@ -705,13 +749,28 @@ const ALL_LETTERS = [
         connections.forEach((connection) => {
             let start = connection.start;
             let end = connection.end;
-            drawLineGradient(start.x + start.width / 2, start.y  + start.height / 2, end.x + end.width / 2, end.y  + end.height / 2, cardColor(start.color), cardColor(end.color), 5)
+            if(start.color[1] == end.color[1]){
+                start.color = "a";
+                end.color = "a";
+                return;
+            }
+
+
+            let color1 = (() => {if(mouseOver == start) {return "white"} else {return cardColor(start.color)}})();
+            let color2 = (() => {if(mouseOver == end)   {return "white"} else {return cardColor(end.color)}})();
+
+            drawLineGradient(start.x + start.width / 2, start.y  + start.height / 2, end.x + end.width / 2, end.y  + end.height / 2, color1, color2, 5)
+            connection.timer += deltaTime;
         })
+        cards = cards.filter((it) => {return it.color != "a"});
+        connections = connections.filter((it) => {return it.timer < 0.25})
         
         // drawLineGradient(rects[0].x + rects[0].width / 2, rects[0].y + rects[0].height / 2, rects[1].x + rects[1].width / 2, rects[1].y + rects[1].height / 2, "red", "blue", 10);
-        //drawRect(mousePos.x - 50, mousePos.y - 50, 100, 100, "#FFFFFF44");
-        // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
+        // drawRect(mousePos.x - 50, mousePos.y - 50, 100, 100, "#FFFFFF44");
+        // drawCircle(mousePos.x, mousePos.y, 100, "#FFFFFF44");
 
+        // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
+        
         ////////////////////// render logic ////////////////////////////////////////////////////
         drawables.forEach(item => {
             if(item.type == "rect"){
@@ -754,6 +813,13 @@ const ALL_LETTERS = [
             if(item.type == "image"){
                 ctx.drawImage(item.image, item.x, item.y, item.width, item.height);
                 return;
+            }
+            if(item.type == "circle"){
+                ctx.beginPath(); // Start a new path
+                ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2); // Create the circle path
+                ctx.fillStyle = item.color; // Set the fill color
+                ctx.fill(); // Fill the circle with the specified color
+                ctx.closePath(); // Close the path
             }
         });
         ///////////////////////////////////////////////////////////////////////////////////////
