@@ -831,7 +831,9 @@ func = (async () =>{
                 let start = connection.start;
                 let end = connection.end;
                 if(start != null && end != null){
-                    if(start.color[1] == end.color[1]){
+                    let pureColor1 = start.color.substring(1).replace(/\d/g, '');
+                    let pureColor2 = end.color.substring(1).replace(/\d/g, '');
+                    if(pureColor1 == pureColor2){
                         startColor = cardColor(start.color);
                         endColor = cardColor(end.color);
                         for(i = 0; i < 30; i++){
