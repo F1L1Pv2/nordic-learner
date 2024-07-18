@@ -269,6 +269,17 @@ const ALL_LETTERS = [
     "eZ",
 ];
 
+function createParticleAtPos(x, y, color){
+    return {
+        "x": x,
+        "y": y,
+        "color": color,
+        "vel_x": Math.cos(Math.random()*2*Math.PI),
+        "vel_y": Math.sin(Math.random()*2*Math.PI),
+        "timer": 0
+    }
+}
+
 (async () =>{
     //////////////// Setup //////////////////////////////
     const canvas = document.createElement("canvas");
@@ -654,6 +665,8 @@ const ALL_LETTERS = [
 
     particles = []
 
+    misses = 0;
+
     frame = ((timestamp) => {
         //////////////// computing delta time //////////////////////
         const deltaTime = (timestamp - prevTimestamp)/1000;
@@ -673,103 +686,145 @@ const ALL_LETTERS = [
         // drawImage(english_A, canvas.width/2 - size /2 , canvas.height/2 - size/2, size, size);
         // drawImage(elderFuthark_A, 0, canvas.height - size/2, size/2, size/2);
         
-        mouseOver = null;
-        cards.forEach((card) => {            
-            if(mouseInsideRect(card)){
-                exists = false;
-                connections.forEach((it) => {
-                    if(exists) return;
-                    if(it.start == card){
-                        exists = true;
-                        return;
-                    }
-                    if(it.end == card){
-                        exists = true;
-                        return;
-                    }
+        if(cards.length == 0){
+            // drawLineGradient(rects[0].x + rects[0].width / 2, rects[0].y + rects[0].height / 2, rects[1].x + rects[1].width / 2, rects[1].y + rects[1].height / 2, "red", "blue", 10);
+            // drawRect(mousePos.x - 50, mousePos.y - 50, 100, 100, "#FFFFFF44");
+            // drawCircle(mousePos.x, mousePos.y, 100, "#FFFFFF44");
+    
+            // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
+            drawText(`You missed: ${misses} times`, canvas.width/2, canvas.height/2 - s/2, "white", s,"center");
+            drawText(`Press Left Button to restart`, canvas.width/2, canvas.height/2 - s/2 + s, "white", s/2,"center");
+            if(mouseButtons.justClickedLeft){
+                misses = 0;
+                let s = canvas.width / 16;
+                for(i = 0; i < ALL_LETTERS.length; i++){randomRect(cards, s*english_A.width / english_A.height, s, "");}
+                cards.map((it, i) => {
+                    it.color = ALL_LETTERS[i];
+                    return it;
                 })
-
-
-                if(mouseButtons.justClickedRight){
-                    goToMouse = card;
-                }
-                if(mouseButtons.justClickedLeft){
+            }
+        }else{
+            mouseOver = null;
+            cards.forEach((card) => {            
+                if(mouseInsideRect(card)){
+                    exists = false;
+                    connections.forEach((it) => {
+                        if(exists) return;
+                        if(it.start == card){
+                            exists = true;
+                            return;
+                        }
+                        if(it.end == card){
+                            exists = true;
+                            return;
+                        }
+                    })
+    
+    
+                    if(mouseButtons.justClickedRight){
+                        goToMouse = card;
+                    }
+                    if(mouseButtons.justClickedLeft){
+                        if(!exists){
+                            dragging = card;
+                        }
+                    }
                     if(!exists){
-                        dragging = card;
+                        mouseOver = card;
                     }
                 }
-                if(!exists){
-                    mouseOver = card;
-                }
+    
+                let image = getCard(card.color, mouseOver == card);
+                drawImage(image, card.x, card.y, card.width, card.height);
+                // if(goToMouse == card || mouseOver == card){
+                //     drawText(`${card.color}`,mousePos.x + 5, mousePos.y, "red", 30)
+                // }
+            });
+            
+            
+            if(goToMouse != null){
+                goToMouse.x = mousePos.x - goToMouse.width/2;
+                goToMouse.y = mousePos.y - goToMouse.height/2;
             }
-
-            let image = getCard(card.color, mouseOver == card);
-            drawImage(image, card.x, card.y, card.width, card.height);
-            // if(goToMouse == card || mouseOver == card){
-            //     drawText(`${card.color}`,mousePos.x + 5, mousePos.y, "red", 30)
-            // }
-        });
-        
-        
-        if(goToMouse != null){
-            goToMouse.x = mousePos.x - goToMouse.width/2;
-            goToMouse.y = mousePos.y - goToMouse.height/2;
-        }
-
-        if(dragging != null){
-            drawLineGradient(dragging.x + dragging.width / 2, dragging.y  + dragging.height / 2, mousePos.x, mousePos.y, cardColor(dragging.color), "white", 5)
-        }
-
-        if(mouseButtons.justReleasedRight){
-            goToMouse = null;
-        }
-
-        if(mouseButtons.justReleasedLeft){
-            if(dragging != null && mouseOver != null && mouseOver != dragging && cardType(dragging.color) != cardType(mouseOver.color)){
-                exists = false;
-                connections.forEach((it) => {
-                    if(exists) return;
-                    if(it.start == mouseOver){
-                        exists = true;
-                        return;
+    
+            if(dragging != null){
+                drawLineGradient(dragging.x + dragging.width / 2, dragging.y  + dragging.height / 2, mousePos.x, mousePos.y, cardColor(dragging.color), "white", s / 15)
+            }
+    
+            if(mouseButtons.justReleasedRight){
+                goToMouse = null;
+            }
+    
+            const maxParticleTime = 0.5;
+    
+            if(mouseButtons.justReleasedLeft){
+                if(dragging != null && mouseOver != null && mouseOver != dragging){
+                    if(cardType(dragging.color) != cardType(mouseOver.color)){
+                        exists = false;
+                        connections.forEach((it) => {
+                            if(exists) return;
+                            if(it.start == mouseOver){
+                                exists = true;
+                                return;
+                            }
+                            if(it.end == mouseOver){
+                                exists = true;
+                                return;
+                            }
+                        })
+                        
+                        if(!exists){
+                            connections.push({"start": dragging, "end": mouseOver, "timer": maxParticleTime})
+                        }
+                    }else{
+                        misses += 0;
                     }
-                    if(it.end == mouseOver){
-                        exists = true;
-                        return;
-                    }
-                })
-                
-                if(!exists){
-                    connections.push({"start": dragging, "end": mouseOver, "timer": 0})
                 }
+                dragging = null;
             }
-            dragging = null;
+    
+            connections.forEach((connection) => {
+                let start = connection.start;
+                let end = connection.end;
+                if(start != null && end != null){
+                    if(start.color[1] == end.color[1]){
+                        startColor = cardColor(start.color);
+                        endColor = cardColor(end.color);
+                        for(i = 0; i < 30; i++){
+                            particles.push(createParticleAtPos(start.x + start.width / 2, start.y  + start.height / 2, startColor));
+                            particles.push(createParticleAtPos(end.x + end.width / 2, end.y  + end.height / 2, endColor));
+                        }
+                        start.color = "a";
+                        end.color = "a";
+                        connection.start = null;
+                        connection.end = null;
+                    }else{
+                        let color1 = (() => {if(mouseOver == start) {return "white"} else {return cardColor(start.color)}})();
+                        let color2 = (() => {if(mouseOver == end)   {return "white"} else {return cardColor(end.color)}})();
+                        
+                        drawLineGradient(start.x + start.width / 2, start.y  + start.height / 2, end.x + end.width / 2, end.y  + end.height / 2, color1, color2, s / 15)
+                        connection.timer += deltaTime;
+                    }
+                }
+    
+    
+            })
+            cards = cards.filter((it) => {return it.color != "a"});
+            connections = connections.filter((it) => {return it.timer < 0.25})
+    
+            particles.forEach((it) => {
+                it.x += it.vel_x * deltaTime * s*10;
+                it.y += it.vel_y * deltaTime * s*10;
+                it.timer += deltaTime;
+    
+                let alpha = Math.floor(255 - it.timer*255/maxParticleTime).toString(16);
+    
+                drawCircle(it.x, it.y, s/10, it.color+alpha);
+            })
+            particles = particles.filter((it) => {return it.timer < maxParticleTime})
+            
         }
 
-        connections.forEach((connection) => {
-            let start = connection.start;
-            let end = connection.end;
-            if(start.color[1] == end.color[1]){
-                start.color = "a";
-                end.color = "a";
-                return;
-            }
-
-
-            let color1 = (() => {if(mouseOver == start) {return "white"} else {return cardColor(start.color)}})();
-            let color2 = (() => {if(mouseOver == end)   {return "white"} else {return cardColor(end.color)}})();
-
-            drawLineGradient(start.x + start.width / 2, start.y  + start.height / 2, end.x + end.width / 2, end.y  + end.height / 2, color1, color2, 5)
-            connection.timer += deltaTime;
-        })
-        cards = cards.filter((it) => {return it.color != "a"});
-        connections = connections.filter((it) => {return it.timer < 0.25})
-        
-        // drawLineGradient(rects[0].x + rects[0].width / 2, rects[0].y + rects[0].height / 2, rects[1].x + rects[1].width / 2, rects[1].y + rects[1].height / 2, "red", "blue", 10);
-        // drawRect(mousePos.x - 50, mousePos.y - 50, 100, 100, "#FFFFFF44");
-        // drawCircle(mousePos.x, mousePos.y, 100, "#FFFFFF44");
-
-        // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
         
         ////////////////////// render logic ////////////////////////////////////////////////////
         drawables.forEach(item => {
