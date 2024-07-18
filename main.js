@@ -777,7 +777,7 @@ function createParticleAtPos(x, y, color){
                             connections.push({"start": dragging, "end": mouseOver, "timer": maxParticleTime})
                         }
                     }else{
-                        misses += 0;
+                        misses += 1;
                     }
                 }
                 dragging = null;
