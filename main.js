@@ -26,6 +26,8 @@ mousePos = {
     "y": 0
 }
 
+escapee =false
+
 mouseButtons = {
     "left": false,
     "right": false,
@@ -620,6 +622,12 @@ function createParticleAtPos(x, y, color){
             mouseButtons.justReleasedRight = true;
         }
     })
+
+    window.onkeydown = ((ev) => {
+        if(ev.keyCode == 27){
+            escapee = true;
+        }
+    })
     //////////////////////////////////////////////////////////
 
     
@@ -677,8 +685,10 @@ function createParticleAtPos(x, y, color){
         //////////////// clearing screen ///////////////////////////
         ctx.fillStyle = "#181818";
         ctx.fillRect(0,0,canvas.width, canvas.height);
-        ////////////////////////////////////////////////////////////
 
+        
+        ////////////////////////////////////////////////////////////
+        
         // drawRect(0, 0, 600, 200, "gray");
         // text = "F1L1Pv2 Młodzik";
         // drawText(text, 20, 100, "white", (600 - 20) / text.length * 2);
@@ -686,11 +696,15 @@ function createParticleAtPos(x, y, color){
         // drawImage(english_A, canvas.width/2 - size /2 , canvas.height/2 - size/2, size, size);
         // drawImage(elderFuthark_A, 0, canvas.height - size/2, size/2, size/2);
         
+        if(escapee){
+            cards = [];
+        }
+        
         if(cards.length == 0){
             // drawLineGradient(rects[0].x + rects[0].width / 2, rects[0].y + rects[0].height / 2, rects[1].x + rects[1].width / 2, rects[1].y + rects[1].height / 2, "red", "blue", 10);
             // drawRect(mousePos.x - 50, mousePos.y - 50, 100, 100, "#FFFFFF44");
             // drawCircle(mousePos.x, mousePos.y, 100, "#FFFFFF44");
-    
+            
             // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
             drawText(`You missed: ${misses} times`, canvas.width/2, canvas.height/2 - s/2, "white", s,"center");
             drawText(`Press Left Button to restart`, canvas.width/2, canvas.height/2 - s/2 + s, "white", s/2,"center");
@@ -704,6 +718,7 @@ function createParticleAtPos(x, y, color){
                 })
             }
         }else{
+            drawText("Press Escape To give up", 0,canvas.height, "#353535", s/2,"left","bottom")
             mouseOver = null;
             cards.forEach((card) => {            
                 if(mouseInsideRect(card)){
@@ -888,6 +903,7 @@ function createParticleAtPos(x, y, color){
         mouseButtons.justReleasedRight = false;
         mouseButtons.justReleasedMiddle = false;
         requestAnimationFrame(frame);
+        escapee = false;
         /////////////////////////////////////////////
     });
 
