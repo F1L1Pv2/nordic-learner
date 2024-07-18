@@ -718,7 +718,7 @@ function createParticleAtPos(x, y, color){
                 })
             }
         }else{
-            drawText("Press Escape To give up", 0,canvas.height, "#353535", s/2,"left","bottom")
+            drawText("Press Escape To give up", 0,0, "#353535", s/2,"left","top")
             mouseOver = null;
             cards.forEach((card) => {            
                 if(mouseInsideRect(card)){
@@ -773,26 +773,22 @@ function createParticleAtPos(x, y, color){
             const maxParticleTime = 0.5;
     
             if(mouseButtons.justReleasedLeft){
-                if(dragging != null && mouseOver != null && mouseOver != dragging){
-                    if(cardType(dragging.color) != cardType(mouseOver.color)){
-                        exists = false;
-                        connections.forEach((it) => {
-                            if(exists) return;
-                            if(it.start == mouseOver){
-                                exists = true;
-                                return;
-                            }
-                            if(it.end == mouseOver){
-                                exists = true;
-                                return;
-                            }
-                        })
-                        
-                        if(!exists){
-                            connections.push({"start": dragging, "end": mouseOver, "timer": maxParticleTime})
+                if(dragging != null && mouseOver != null && mouseOver != dragging && cardType(dragging.color) != cardType(mouseOver.color)){
+                    exists = false;
+                    connections.forEach((it) => {
+                        if(exists) return;
+                        if(it.start == mouseOver){
+                            exists = true;
+                            return;
                         }
-                    }else{
-                        misses += 1;
+                        if(it.end == mouseOver){
+                            exists = true;
+                            return;
+                        }
+                    })
+                    
+                    if(!exists){
+                        connections.push({"start": dragging, "end": mouseOver, "timer": maxParticleTime})
                     }
                 }
                 dragging = null;
@@ -819,6 +815,9 @@ function createParticleAtPos(x, y, color){
                         
                         drawLineGradient(start.x + start.width / 2, start.y  + start.height / 2, end.x + end.width / 2, end.y  + end.height / 2, color1, color2, s / 15)
                         connection.timer += deltaTime;
+                        if(connection.timer >= 0.25){
+                            misses += 1;
+                        }
                     }
                 }
     
