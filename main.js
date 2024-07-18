@@ -555,10 +555,6 @@ const ALL_LETTERS = [
             case "eZ": if(white){return white_english_Z} else{return english_Z}
         }
     })
-
-    drawCard = ((letter, white, x, y, size) => {
-        drawImage(getCard(letter, white), x, y, size, size);
-    });
     ///////////////////////////////////////////
     
 
@@ -610,7 +606,7 @@ const ALL_LETTERS = [
     
     let s = canvas.width / 16;
     cards = []
-    for(i = 0; i < ALL_LETTERS.length; i++){randomRect(cards, s, s, "");}
+    for(i = 0; i < ALL_LETTERS.length; i++){randomRect(cards, s*english_A.width / english_A.height, s, "");}
 
     ///////////////// Screen Size ///////////////////////////////////////
     if(cards.length < ALL_LETTERS.length){
@@ -677,7 +673,9 @@ const ALL_LETTERS = [
                 }
                 mouseOver = card;
             }
-            drawCard(card.color, mouseOver == card, card.x, card.y, card.width);
+
+            let image = getCard(card.color, mouseOver == card);
+            drawImage(image, card.x, card.y, card.width, card.height);
             // if(goToMouse == card || mouseOver == card){
             //     drawText(`${card.color}`,mousePos.x + 5, mousePos.y, "red", 30)
             // }
