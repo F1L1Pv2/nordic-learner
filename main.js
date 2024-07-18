@@ -748,6 +748,7 @@ func = (async () =>{
                 })
             }
         }else{
+            drawText("© Copyright 2024 F1L1Pv2", canvas.width/2, canvas.height - s/10, "#555555", s/5, "center", "bottom")
             if(escapee){
                 cards = [];
             }
