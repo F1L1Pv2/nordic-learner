@@ -282,7 +282,7 @@ function createParticleAtPos(x, y, color){
     }
 }
 
-(async () =>{
+func = (async () =>{
     //////////////// Setup //////////////////////////////
     const canvas = document.createElement("canvas");
     ctx = canvas.getContext("2d");
@@ -412,6 +412,8 @@ function createParticleAtPos(x, y, color){
         white_english_U,
         white_english_W,
         white_english_Z,
+
+        headline
     ] = await Promise.all([
         loadImage("assets/elderfuthark/A.svg"),
         loadImage("assets/elderfuthark/B.svg"),
@@ -520,6 +522,8 @@ function createParticleAtPos(x, y, color){
         loadImage("assets/white_english/U.svg"),
         loadImage("assets/white_english/W.svg"),
         loadImage("assets/white_english/Z.svg"),
+
+        loadImage("assets/headline.svg"),
     ]);
 
     getCard = ((letter, white) => {
@@ -674,6 +678,9 @@ function createParticleAtPos(x, y, color){
     particles = []
 
     misses = 0;
+    done = 0;
+
+    gameStarted = false;
 
     frame = ((timestamp) => {
         //////////////// computing delta time //////////////////////
@@ -696,20 +703,43 @@ function createParticleAtPos(x, y, color){
         // drawImage(english_A, canvas.width/2 - size /2 , canvas.height/2 - size/2, size, size);
         // drawImage(elderFuthark_A, 0, canvas.height - size/2, size/2, size/2);
         
-        if(escapee){
-            cards = [];
+        if(!gameStarted){
+            let scale = s;
+            let size = [headline.width/headline.height * s, s]
+            drawImage(headline, canvas.width/2 - size[0] / 2 - s/10, size[1] / 2, size[0], size[1]);
+
+            drawText("Press Left Click To Start!", canvas.width/2, canvas.height / 2, "white", s/2, "center");
+            drawText("Left Mouse Button Connects Cards", canvas.width/2, canvas.height / 2 + s/2, "#A0A0A0", s/4, "center");
+            drawText("Right Mouse Button Moves Cards", canvas.width/2, canvas.height / 2 + s*.85, "#A0A0A0", s/4, "center");
+            drawText("Press Escape To give up", canvas.width/2, canvas.height / 2 + s*1.2, "#A0A0A0", s/4, "center")
+
+            drawText("© Copyright 2024 F1L1Pv2", canvas.width/2, canvas.height - s/10, "#555555", s/5, "center", "bottom")
+            if(mouseButtons.justClickedLeft){
+                gameStarted = true;
+                misses = 0;
+                done = 0;
+            }
         }
         
+        else{
+
         if(cards.length == 0){
+            let scale = s;
+            let size = [headline.width/headline.height * s, s]
+            drawImage(headline, canvas.width/2 - size[0] / 2 - s/10, size[1] / 2, size[0], size[1]);
+            drawText("© Copyright 2024 F1L1Pv2", canvas.width/2, canvas.height - s/10, "#555555", s/5, "center", "bottom")
+
             // drawLineGradient(rects[0].x + rects[0].width / 2, rects[0].y + rects[0].height / 2, rects[1].x + rects[1].width / 2, rects[1].y + rects[1].height / 2, "red", "blue", 10);
             // drawRect(mousePos.x - 50, mousePos.y - 50, 100, 100, "#FFFFFF44");
             // drawCircle(mousePos.x, mousePos.y, 100, "#FFFFFF44");
             
             // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
-            drawText(`You missed: ${misses} times`, canvas.width/2, canvas.height/2 - s/2, "white", s,"center");
-            drawText(`Press Left Button to restart`, canvas.width/2, canvas.height/2 - s/2 + s, "white", s/2,"center");
+            drawText(`You Did: ${done}/${ALL_LETTERS.length}`, canvas.width/2, canvas.height/2 - s/2, "white", s/2,"center");
+            drawText(`You missed: ${misses} times`, canvas.width/2, canvas.height/2, "white", s/2,"center");
+            drawText(`Press Left Button to restart`, canvas.width/2, canvas.height/2 + s/2, "#A0A0A0", s/4,"center");
             if(mouseButtons.justClickedLeft){
                 misses = 0;
+                done = 0;
                 let s = canvas.width / 16;
                 for(i = 0; i < ALL_LETTERS.length; i++){randomRect(cards, s*english_A.width / english_A.height, s, "");}
                 cards.map((it, i) => {
@@ -718,7 +748,9 @@ function createParticleAtPos(x, y, color){
                 })
             }
         }else{
-            drawText("Press Escape To give up", 0,0, "#353535", s/2,"left","top")
+            if(escapee){
+                cards = [];
+            }
             mouseOver = null;
             cards.forEach((card) => {            
                 if(mouseInsideRect(card)){
@@ -809,6 +841,7 @@ function createParticleAtPos(x, y, color){
                         end.color = "a";
                         connection.start = null;
                         connection.end = null;
+                        done += 1;
                     }else{
                         let color1 = (() => {if(mouseOver == start) {return "white"} else {return cardColor(start.color)}})();
                         let color2 = (() => {if(mouseOver == end)   {return "white"} else {return cardColor(end.color)}})();
@@ -839,7 +872,8 @@ function createParticleAtPos(x, y, color){
             
         }
 
-        
+    }
+
         ////////////////////// render logic ////////////////////////////////////////////////////
         drawables.forEach(item => {
             if(item.type == "rect"){
@@ -912,4 +946,6 @@ function createParticleAtPos(x, y, color){
         requestAnimationFrame(frame);
     });
     ////////////////////////////////////////////////////////
-})()
+})
+
+func()
