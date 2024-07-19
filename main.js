@@ -734,7 +734,7 @@ func = (async () =>{
             // drawCircle(mousePos.x, mousePos.y, 100, "#FFFFFF44");
             
             // drawText(`(${mousePos.x}, ${mousePos.y})`, mousePos.x, mousePos.y, "white", 20);
-            drawText(`You Did: ${done}/${ALL_LETTERS.length}`, canvas.width/2, canvas.height/2 - s/2, "white", s/2,"center");
+            drawText(`You Did: ${done}/29`, canvas.width/2, canvas.height/2 - s/2, "white", s/2,"center");
             drawText(`You missed: ${misses} times`, canvas.width/2, canvas.height/2, "white", s/2,"center");
             drawText(`Press Left Button to restart`, canvas.width/2, canvas.height/2 + s/2, "#A0A0A0", s/4,"center");
             if(mouseButtons.justClickedLeft){
