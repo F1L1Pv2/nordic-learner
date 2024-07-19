@@ -71,7 +71,7 @@ function drawRect(x, y, width, height, color){
 }
 
 
-function drawText(text, x, y, color, size = 10, align = "left", baseline = "middle", font = "serif"){
+function drawText(text, x, y, color, size = 10, align = "left", baseline = "middle", font = "Jaldi"){
     drawables.push(
         {
             "type": "text",
